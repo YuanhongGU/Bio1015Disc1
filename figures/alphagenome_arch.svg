@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 520" width="1040" height="520" role="img">
+  <title>AlphaGenome 架构</title>
+  <desc>1 Mb DNA 经序列并行进入 U-Net，再分成一维功能轨道和二维染色质接触图。</desc>
+  <defs>
+    <marker id="ag-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="1040" height="520" fill="#ffffff"/>
+  <text x="28" y="36" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="20" font-weight="700" fill="#1e293b">AlphaGenome 架构</text>
+  <text x="250" y="36" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#64748b">序列到功能 · U-Net · 人和小鼠</text>
+  <rect x="372" y="58" width="640" height="148" rx="14" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="388" y="80" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" font-weight="700" fill="#64748b">U-Net 骨干</text>
+  <rect x="24" y="78" width="150" height="108" rx="10" fill="#f1f5f9" stroke="#94a3b8"/>
+  <text x="99" y="114" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#1e293b">输入</text>
+  <text x="99" y="138" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">1 Mb DNA</text>
+  <text x="99" y="158" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">物种：人 / 鼠</text>
+  <line x1="174" y1="132" x2="206" y2="132" stroke="#334155" stroke-width="1.6" marker-end="url(#ag-arrow)"/>
+  <rect x="210" y="78" width="146" height="108" rx="10" fill="#e8f1fb" stroke="#2F5D8C"/>
+  <text x="283" y="114" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#1e293b">序列并行</text>
+  <text x="283" y="138" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">切成 131 kb</text>
+  <text x="283" y="158" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">8 路同时计算</text>
+  <line x1="356" y1="132" x2="388" y2="132" stroke="#334155" stroke-width="1.6" marker-end="url(#ag-arrow)"/>
+  <rect x="392" y="92" width="180" height="96" rx="10" fill="#dbeafe" stroke="#2F5D8C"/>
+  <text x="482" y="124" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#1e293b">编码器</text>
+  <text x="482" y="148" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">下采样 · 卷积</text>
+  <text x="482" y="168" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">局部 motif</text>
+  <line x1="572" y1="140" x2="604" y2="140" stroke="#334155" stroke-width="1.6" marker-end="url(#ag-arrow)"/>
+  <rect x="608" y="92" width="190" height="96" rx="10" fill="#dbeafe" stroke="#2F5D8C"/>
+  <text x="703" y="124" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#1e293b">Transformer</text>
+  <text x="703" y="148" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">跨设备通信</text>
+  <text x="703" y="168" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">增强子–启动子</text>
+  <line x1="798" y1="140" x2="830" y2="140" stroke="#334155" stroke-width="1.6" marker-end="url(#ag-arrow)"/>
+  <rect x="834" y="92" width="160" height="96" rx="10" fill="#dbeafe" stroke="#2F5D8C"/>
+  <text x="914" y="128" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#1e293b">解码器</text>
+  <text x="914" y="152" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">上采样</text>
+  <line x1="860" y1="188" x2="700" y2="236" stroke="#334155" stroke-width="1.6" marker-end="url(#ag-arrow)"/>
+  <line x1="968" y1="188" x2="932" y2="236" stroke="#334155" stroke-width="1.6" marker-end="url(#ag-arrow)"/>
+  <rect x="500" y="240" width="340" height="118" rx="10" fill="#e7f5f2" stroke="#2A7F6F"/>
+  <text x="670" y="268" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#1e293b">一维表示 → 功能轨道</text>
+  <text x="670" y="292" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">分辨率 1 bp 与 128 bp</text>
+  <text x="670" y="314" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">表达、剪接、可及性</text>
+  <text x="670" y="336" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">组蛋白、转录因子</text>
+  <rect x="860" y="240" width="156" height="118" rx="10" fill="#e7f5f2" stroke="#2A7F6F"/>
+  <text x="938" y="276" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#1e293b">二维表示</text>
+  <text x="938" y="300" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">2,048 bp</text>
+  <text x="938" y="322" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="13" fill="#475569">染色质接触图</text>
+  <rect x="24" y="392" width="992" height="96" rx="10" fill="#fff7ed" stroke="#D4762C"/>
+  <text x="44" y="424" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="15" font-weight="700" fill="#9a3412">变异效应</text>
+  <text x="44" y="450" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="14" fill="#7c2d12">没有单独的变异输出头。同一段序列分别输入参考等位基因和替代等位基因，各预测一次，再取差值。</text>
+  <text x="44" y="472" font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, sans-serif" font-size="14" fill="#7c2d12">人 5,930 条轨道，小鼠 1,128 条，共 11 类输出。</text>
+</svg>

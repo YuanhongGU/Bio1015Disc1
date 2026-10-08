@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>生导讨论课</title>
+  <style>
+    :root {
+      --mosaic-pink: #e84d85;
+      --mosaic-purple: #9b6ca8;
+      --mosaic-lime: #c6da58;
+      --mosaic-blue: #24b8ec;
+      --mosaic-orange: #ee7954;
+      --mosaic-bg: #000;
+      --mosaic-text: #f3f4f6;
+      --mosaic-muted: #9ca3af;
+      --mosaic-gradient: linear-gradient(135deg,
+          #e84d85 0%, #9b6ca8 25%, #24b8ec 50%, #c6da58 75%, #ee7954 100%);
+      --nav-height: 72px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--mosaic-bg);
+      color: var(--mosaic-text);
+      font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+      padding-top: var(--nav-height);
+    }
+
+    .custom-navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1030;
+      padding: 0.6rem 20px;
+      background: transparent;
+      transition: transform 0.3s ease;
+    }
+
+    .custom-navbar.navbar-hide { transform: translateY(-100%); }
+
+    .nav-shell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .brand-pill {
+      margin-right: auto;
+      display: flex;
+      align-items: center;
+      padding: 6px 12px;
+      font-weight: 700;
+      font-size: 1.35rem;
+      color: rgba(255, 255, 255, 0.88);
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .menu-pill {
+      position: relative;
+      isolation: isolate;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      max-width: 100%;
+      min-width: 0;
+      background: rgba(255, 255, 255, 0.015);
+      backdrop-filter: blur(4px) saturate(160%);
+      -webkit-backdrop-filter: blur(4px) saturate(160%);
+      box-shadow:
+        0 10px 30px -5px rgba(0, 0, 0, 0.3),
+        inset 0 2px 2px 0 rgba(255, 255, 255, 0.8),
+        inset 0 -2px 4px 0 rgba(0, 0, 0, 0.15);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .menu-pill::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      border-radius: inherit;
+      padding: 2px;
+      background: var(--mosaic-gradient);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+
+    .menu-pill:hover::after { opacity: 1; }
+    .menu-pill > * { position: relative; z-index: 1; }
+
+    .menu-nav {
+      display: flex;
+      align-items: center;
+      gap: clamp(12px, 1.4vw, 22px);
+    }
+
+    .menu-nav .nav-item { position: relative; }
+
+    .menu-nav .nav-item + .nav-item::before {
+      content: "";
+      position: absolute;
+      left: calc(clamp(12px, 1.4vw, 22px) / -2);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .nav-link {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 1rem;
+      padding: 6px 2px;
+      text-decoration: none;
+      transition: color 0.25s ease;
+    }
+
+    .nav-icon {
+      width: 14px; height: 14px; flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .nav-c-pink { color: var(--mosaic-pink); }
+    .nav-c-purple { color: var(--mosaic-purple); }
+    .nav-c-blue { color: var(--mosaic-blue); }
+    .nav-c-lime { color: var(--mosaic-lime); }
+    .nav-c-orange { color: var(--mosaic-orange); }
+    .nav-link:hover { color: #fff; }
+
+    .nav-link .u, .dropdown-item .u { position: relative; display: inline-block; }
+
+    .nav-link .u::after, .dropdown-item .u::after {
+      content: "";
+      position: absolute;
+      left: 0; bottom: 0.1em;
+      width: 100%; height: 2px;
+      background: var(--mosaic-gradient);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .nav-link:hover .u::after, .dropdown-item:hover .u::after { transform: scaleX(1); }
+
+    .nav-item.dropdown { position: relative; }
+    .nav-item.dropdown:hover, .nav-item.dropdown:focus-within, .nav-item.dropdown.show { z-index: 3; }
+    .nav-item.dropdown:hover > .nav-link .nav-icon,
+    .nav-item.dropdown:focus-within > .nav-link .nav-icon,
+    .nav-item.dropdown.show > .nav-link .nav-icon { transform: rotate(180deg); }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%; left: 0;
+      z-index: 1300;
+      min-width: 11rem;
+      margin: 0; padding: 6px 0;
+      list-style: none;
+      background: #15151a;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      opacity: 0; visibility: hidden;
+      transform: translateY(-6px);
+      transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+    }
+
+    .nav-item.dropdown:nth-child(n+4) > .dropdown-menu { left: auto; right: 0; }
+    .dropdown-menu::before {
+      content: "";
+      position: absolute;
+      top: -12px; left: -10px; right: -10px; height: 12px;
+    }
+    .dropdown-menu li { margin: 0; padding: 0; }
+    .dropdown-menu li::before { content: none; }
+
+    .nav-item.dropdown:hover > .dropdown-menu,
+    .nav-item.dropdown:focus-within > .dropdown-menu,
+    .nav-item.dropdown.show > .dropdown-menu {
+      opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
+    }
+
+    .nav-item.dropdown.is-dismissed > .dropdown-menu {
+      opacity: 0; visibility: hidden; transform: translateY(-6px); pointer-events: none;
+    }
+
+    .dropdown-item {
+      display: block;
+      padding: 0.5rem 1rem;
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .dropdown-item:hover, .dropdown-item:focus-visible { color: #fff; }
+
+    .mainContent {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      font-size: 20px;
+      padding: 24px 32px 80px;
+    }
+
+    .main { scroll-margin-top: calc(var(--nav-height) + 16px); }
+    .main h2, .main h3 { scroll-margin-top: calc(var(--nav-height) + 16px); }
+
+    .main h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 2.4rem 0 1.2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .main h3 {
+      width: fit-content;
+      font-size: 1.35rem;
+      margin: 1.4rem 0 0.5rem;
+      padding: 0 0.5em 0.15em;
+    }
+
+    .lead h2 { margin-top: 0.4rem; }
+
+    #ag h2 { border-left: 4px solid var(--mosaic-pink); padding-left: 14px; }
+    #esm h2 { border-left: 4px solid var(--mosaic-purple); padding-left: 14px; }
+    #rfd h2 { border-left: 4px solid var(--mosaic-blue); padding-left: 14px; }
+    #bz h2 { border-left: 4px solid var(--mosaic-lime); padding-left: 14px; }
+    #pc h2 { border-left: 4px solid var(--mosaic-orange); padding-left: 14px; }
+
+    #ag h3 { border-bottom: 1px solid var(--mosaic-pink); }
+    #esm h3 { border-bottom: 1px solid var(--mosaic-purple); }
+    #rfd h3 { border-bottom: 1px solid var(--mosaic-blue); }
+    #bz h3 { border-bottom: 1px solid var(--mosaic-lime); }
+    #pc h3 { border-bottom: 1px solid var(--mosaic-orange); }
+
+    #ag b, #ag a { color: var(--mosaic-pink); }
+    #esm b, #esm a { color: var(--mosaic-purple); }
+    #rfd b, #rfd a { color: var(--mosaic-blue); }
+    #bz b, #bz a { color: var(--mosaic-lime); }
+    #pc b, #pc a { color: var(--mosaic-orange); }
+    .lead a { color: var(--mosaic-blue); }
+
+    .main .body { font-size: 1rem; line-height: 1.8; }
+    p { margin: 0 0 1em; }
+    .cite { color: var(--mosaic-muted); font-size: 0.95rem; }
+
+    .main .body > figure {
+      display: block;
+      width: min(100%, 960px);
+      margin: 1.2em auto 1.6em;
+    }
+
+    .main .body > figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .main figcaption {
+      margin: 0.55em 0 0;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: rgba(243, 244, 246, 0.82);
+    }
+
+    sub, sup { font-size: 0.75em; }
+
+    .botBar {
+      display: flex;
+      align-items: center;
+      padding: 10px 32px;
+      margin: 10px 16px 24px;
+      background: color-mix(in srgb, var(--mosaic-muted) 10%, transparent);
+      border-radius: 32px;
+      color: var(--mosaic-muted);
+    }
+
+    @media (max-width: 980px) {
+      .nav-shell { flex-wrap: wrap; }
+      .brand-pill { margin-right: 0; }
+      .menu-pill { width: 100%; overflow-x: auto; }
+      .menu-nav .nav-item + .nav-item::before { display: none; }
+      .mainContent { font-size: 17px; padding: 16px 16px 48px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .custom-navbar, .menu-pill, .nav-link, .dropdown-menu, .nav-icon { transition: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="custom-navbar" id="nav">
+    <div class="nav-shell">
+      <a class="brand-pill" href="#overview">生导讨论课</a>
+      <div class="menu-pill">
+        <nav class="menu-nav" aria-label="页面章节">
+          <div class="nav-item dropdown">
+            <a href="#ag" class="nav-link nav-c-pink" aria-haspopup="true" aria-expanded="false">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+              <span class="u">AlphaGenome</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#ag-arch"><span class="u">模型架构</span></a></li>
+              <li><a class="dropdown-item" href="#ag-train"><span class="u">训练方式</span></a></li>
+              <li><a class="dropdown-item" href="#ag-data"><span class="u">数据及其解读</span></a></li>
+            </ul>
+          </div>
+          <div class="nav-item dropdown">
+            <a href="#esm" class="nav-link nav-c-purple" aria-haspopup="true" aria-expanded="false">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+              <span class="u">ESMFold2</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#esm-arch"><span class="u">模型架构</span></a></li>
+              <li><a class="dropdown-item" href="#esm-train"><span class="u">训练方式</span></a></li>
+              <li><a class="dropdown-item" href="#esm-data"><span class="u">数据及其解读</span></a></li>
+            </ul>
+          </div>
+          <div class="nav-item dropdown">
+            <a href="#rfd" class="nav-link nav-c-blue" aria-haspopup="true" aria-expanded="false">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+              <span class="u">RFdiffusion3</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#rfd-arch"><span class="u">模型架构</span></a></li>
+              <li><a class="dropdown-item" href="#rfd-train"><span class="u">训练方式</span></a></li>
+              <li><a class="dropdown-item" href="#rfd-data"><span class="u">数据及其解读</span></a></li>
+            </ul>
+          </div>
+          <div class="nav-item dropdown">
+            <a href="#bz" class="nav-link nav-c-lime" aria-haspopup="true" aria-expanded="false">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+              <span class="u">BoltzGen</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#bz-arch"><span class="u">模型架构</span></a></li>
+              <li><a class="dropdown-item" href="#bz-train"><span class="u">训练方式</span></a></li>
+              <li><a class="dropdown-item" href="#bz-data"><span class="u">数据及其解读</span></a></li>
+            </ul>
+          </div>
+          <div class="nav-item dropdown">
+            <a href="#pc" class="nav-link nav-c-orange" aria-haspopup="true" aria-expanded="false">
+              <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+              <span class="u">Proteina-Complexa</span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#pc-arch"><span class="u">模型架构</span></a></li>
+              <li><a class="dropdown-item" href="#pc-train"><span class="u">训练方式</span></a></li>
+              <li><a class="dropdown-item" href="#pc-data"><span class="u">数据及其解读</span></a></li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <div class="mainContent">
+    <div class="main lead" id="overview">
+      <h2>五个模型的架构、训练与数据</h2>
+      <div class="body">
+        <p>每个模型只保留三部分：模型架构、训练方式、数据及其解读。结果图由论文中的数字重绘，不是原文插图。AlphaGenome 为 <em>Nature</em> 正式论文，其余四篇为预印本。</p>
+      </div>
+    </div>
+
+    <div class="main" id="ag">
+      <h2>AlphaGenome（DeepMind）</h2>
+      <div class="body">
+        <p class="cite">Avsec, Ž. et al. Advancing regulatory variant effect prediction with AlphaGenome. <em>Nature</em> (2026). <a href="https://doi.org/10.1038/s41586-025-10014-0">https://doi.org/10.1038/s41586-025-10014-0</a></p>
+      </div>
+      <h3 id="ag-arch">模型架构</h3>
+      <div class="body">
+        <p>输入 1 Mb DNA 和物种标记（人或小鼠）。骨干是 U-Net：编码器下采样，中间用 Transformer 跨设备传递长程信息，解码器上采样。卷积负责局部模式（剪接位点、转录因子足迹），Transformer 负责增强子–启动子这类长程依赖。</p>
+        <p>内部有两类表示。一维表示分辨率为 1 bp 和 128 bp，用于线性轨道；二维表示分辨率为 2,048 bp，用于染色质接触图。输出头按任务给出不同分辨率：RNA-seq、ATAC、DNase 为 1 bp，部分组蛋白和转录因子 ChIP 为 128 bp，接触图为 2,048 bp。人有 5,930 条轨道，小鼠有 1,128 条，共 11 类，覆盖表达、转录起始、剪接位点与剪接连接、可及性、组蛋白、转录因子结合和三维接触。1 Mb 被切成 131 kb 片段，在 8 块加速器上做序列并行。</p>
+        <p>变异效应不是单独的输出头，而是同一序列的参考等位基因与替代等位基因各预测一次，再取差。</p>
+        <figure>
+          <img src="figures/alphagenome_arch.svg" alt="AlphaGenome 架构：1 Mb DNA 经序列并行进入 U-Net，再分成一维功能轨道和二维接触图">
+          <figcaption><b>图 1.</b> AlphaGenome 的架构。变异效应由参考序列与替代序列的预测差值得到。</figcaption>
+        </figure>
+      </div>
+      <h3 id="ag-train">训练方式</h3>
+      <div class="body">
+        <p>两阶段。预训练用实验测量值做监督，输入做位移和反向互补。基因组按四折交叉验证：折内模型只用四分之三区间训练，留出区间做测试；全折模型用全部参考基因组区间训练，作为教师。蒸馏阶段，一个学生模型学习复现多位全折教师在随机增强序列上的输出，以得到更稳的单一模型。</p>
+      </div>
+      <h3 id="ag-data">数据及其解读</h3>
+      <div class="body">
+        <p>训练标签来自人和小鼠细胞系、组织的功能基因组实验（RNA-seq、CAGE、PRO-cap、DNase、ATAC、ChIP-seq、Hi-C 等）。1 Mb 窗口盖住已验证增强子–基因对的 99%（465/471）。</p>
+        <p>未见过的基因组区间上，24 项轨道预测里 22 项超过当时最强外部模型；26 项变异效应评估里 25 项达到或超过最强外部模型。下图只保留能与 Borzoi 直接比的三项。</p>
+        <figure>
+          <img src="figures/alphagenome.png" alt="AlphaGenome 与 Borzoi 在高置信 eQTL、可变多聚腺苷酸化和因果 eQTL 上的对比">
+          <figcaption><b>图 2.</b> AlphaGenome 与 Borzoi 的三项变异效应指标。因果 eQTL 的 0.75 是多模态分数再经随机森林后的结果。</figcaption>
+        </figure>
+        <p>高置信 eQTL 的相关系数 0.73 对 0.61，可变多聚腺苷酸化 0.894 对 0.790，说明在强信号和剪接相关读出上优于上一代多模态模型。因果 eQTL 的差距小（0.75 对 0.71），而且 0.75 已经是多模态分数再经随机森林的结果，模型自己只有 0.68。全体精细定位 eQTL（17,675 个）的有符号 Spearman 相关只有 0.50，只看效应绝对值则降到 0.10。因此图中的优势集中在高置信子集，不能当成对任意变异效应量的预测。</p>
+      </div>
+    </div>
+
+    <div class="main" id="esm">
+      <h2>ESMFold2（Biohub）</h2>
+      <div class="body">
+        <p class="cite">Candido, S., Hayes, T., Derry, A., Rao, R. et al. Language modeling materializes a world model of protein biology. <em>bioRxiv</em> (2026). <a href="https://doi.org/10.64898/2026.06.03.729735">https://doi.org/10.64898/2026.06.03.729735</a></p>
+      </div>
+      <h3 id="esm-arch">模型架构</h3>
+      <div class="body">
+        <p>两段。ESMC 是掩码语言模型：每个氨基酸映成向量（60 亿参数版为 2,560 维），经自注意力和前馈层，预测被遮住的氨基酸。发布的是 3 亿、6 亿和 60 亿三档；ESMFold2 使用冻结的 60 亿档。</p>
+        <p>ESMFold2 把 ESMC 各层表示汇成一个向量，投到二维残基对表示，经 4 层编码器，再由 48 层折叠模块循环更新（ESMFold2-Fast 为 24 层）。最后两层折叠状态送入带滑动窗口原子注意力的扩散 Transformer，去噪得到全原子坐标。可处理蛋白质、DNA、RNA、修饰氨基酸和小分子，多序列比对可选。</p>
+        <figure>
+          <img src="figures/esmfold2_arch.svg" alt="ESMFold2 架构：冻结的 ESMC 表征进入配对编码、循环折叠和扩散模块">
+          <figcaption><b>图 3.</b> ESMFold2 的架构。ESMC 在折叠时保持冻结，各层表征汇入折叠网络。</figcaption>
+        </figure>
+      </div>
+      <h3 id="esm-train">训练方式</h3>
+      <div class="body">
+        <p>ESMC 用掩码语言建模，在约 28 亿条序列上训练：UniRef 2023_02 的 1.56 亿条、JGI 的 20.29 亿条、MGnify 2023_02 的 6.21 亿条。相对 ESM2 所用的约 5,000 万条 UniRef50，数据量扩大近两个数量级。60 亿模型训到计算最优附近，较小模型略超过该点。</p>
+        <p>ESMFold2 冻结 ESMC，在蛋白质数据银行与 AlphaFold 数据库结构上训练折叠头。开发实验里，语言模型训练计算量与折叠精度呈对数线性关系（单体 lDDT 的 <em>R</em><sup>2</sup> = 0.92，蛋白–蛋白 DockQ 通过率的 <em>R</em><sup>2</sup> = 0.93）。结构能力来自序列统计的缩放，不是单独写入的物理能量函数。</p>
+      </div>
+      <h3 id="esm-data">数据及其解读</h3>
+      <div class="body">
+        <p>下图是复合物预测的中心通过率（DockQ ≥ 0.23）。抗体–抗原来自 FoldBench；蛋白–蛋白的单序列 70% 来自 Runs N' Poses，带多序列比对的 76% 与 AlphaFold 3 的 73% 为论文直接对照。</p>
+        <figure>
+          <img src="figures/esmfold2.png" alt="ESMFold2 与 AlphaFold 3 在抗体–抗原和蛋白–蛋白上的 DockQ 通过率">
+          <figcaption><b>图 4.</b> ESMFold2 与 AlphaFold 3 的复合物通过率。误差约 ±1 到 ±2 个百分点。</figcaption>
+        </figure>
+        <p>仅用序列时，抗体–抗原 50% 已经高于带多序列比对的 AlphaFold 3（47%）。加上多序列比对后，两类任务都超过 AlphaFold 3。单序列蛋白–配体通过率为 66%，论文未给同设定的 AlphaFold 3 对照，故未画入。</p>
+        <p>这证明 ESMC 表征里已经含有足够的相互作用信息，推理时不必再检索进化比对。它证明的是结构坐标预测，不是结合自由能或细胞功能。</p>
+      </div>
+    </div>
+
+    <div class="main" id="rfd">
+      <h2>RFdiffusion3（Baker 实验室）</h2>
+      <div class="body">
+        <p class="cite">Butcher, J., Krishna, R., Mitra, R. et al. De novo design of all-atom biomolecular interactions with RFdiffusion3. <em>bioRxiv</em> (2025). <a href="https://doi.org/10.1101/2025.09.18.676967">https://doi.org/10.1101/2025.09.18.676967</a></p>
+      </div>
+      <h3 id="rfd-arch">模型架构</h3>
+      <div class="body">
+        <p>扩散的基本单元是原子，不是残基。每个残基固定为 4 个骨架原子加 10 个侧链原子（色氨酸的侧链重原子数）；较短侧链用放在 Cβ 上的虚拟原子补齐，去噪后再按原子身份读出氨基酸。</p>
+        <p>网络是 Transformer U-Net，约 1.68 亿可训练参数：下采样编码原子与残基特征，稀疏 Transformer 只让噪声坐标里彼此接近的原子和残基互相关注，上采样预测坐标更新。条件由仅 2 层的轻量 Pairformer 处理（AlphaFold 3 为 48 层），并去掉三角乘法和三角注意力。与 RFdiffusion、RFdiffusion2 不共享代码。典型长度上比 RFdiffusion2 大约快 10 倍。</p>
+        <p>条件可以是靶点坐标、功能基序、氢键供体或受体、溶剂可及性和相对质心的位置。基序坐标在去噪过程中保持给定，蛋白在该几何周围生成。使用分类器无关引导。</p>
+        <figure>
+          <img src="figures/rfdiffusion3_arch.svg" alt="RFdiffusion3 架构：原子条件经两层 Pairformer 进入扩散 U-Net">
+          <figcaption><b>图 5.</b> RFdiffusion3 的架构。每残基固定 14 个原子位，去噪结束后按原子身份读出氨基酸。</figcaption>
+        </figure>
+      </div>
+      <h3 id="rfd-train">训练方式</h3>
+      <div class="body">
+        <p>数据为蛋白质数据银行中的蛋白–蛋白、蛋白–小分子、蛋白–DNA 复合物，功能基序，以及一批 AlphaFold 2 蒸馏结构。训练时把天然结构加噪到不同幅度，在随机保留的一部分条件（氢键、结合伙伴、基序）下，预测骨架和侧链原子坐标。氢键供体/受体标签只在一小部分样本中给出，以免模型离不开该条件。</p>
+      </div>
+      <h3 id="rfd-data">数据及其解读</h3>
+      <div class="body">
+        <figure>
+          <img src="figures/rfdiffusion3.png" alt="RFdiffusion3 的计算成功簇与湿实验成功数">
+          <figcaption><b>图 6.</b> 左为按 AlphaFold 3 置信度计算的独特成功簇，右为湿实验成功数。</figcaption>
+        </figure>
+        <p>左图：五个靶点（PD-L1、胰岛素受体、IL-7Rα、Tie2、IL-2Rα）各 400 个骨架。按 AlphaFold 3 标准（链间最小 pAE ≤ 1.5，结合蛋白 pTM ≥ 0.8，RMSD &lt; 2.5 Å）并按 TM-score 0.6 聚类后，平均成功簇 8.2 对 RFdiffusion 的 1.4。不聚类时，五个靶点里四个超过 RFdiffusion。原子基序酶基准 41 例中 37 例超过 RFdiffusion2。这些数字说明生成结构更多样，且更符合 AlphaFold 3 的置信度，评委仍是另一个模型。</p>
+        <p>右图才是实验。DNA 结合测试 5 个设计，1 个结合，EC50 = 5.89 ± 2.15 μM。半胱氨酸水解酶测试 190 个，35 个多次周转，最高 <em>k</em><sub>cat</sub>/<em>K</em><sub>m</sub> = 3557。催化所用的 Cys-His-Asp 几何来自天然酶 Ulp1，由人指定。计算通过率明显高于湿实验成功率。</p>
+      </div>
+    </div>
+
+    <div class="main" id="bz">
+      <h2>BoltzGen（MIT）</h2>
+      <div class="body">
+        <p class="cite">Stark, H., Faltings, F., Choi, M. et al. BoltzGen: toward universal binder design. <em>bioRxiv</em> (2025). <a href="https://doi.org/10.1101/2025.11.20.689494">https://doi.org/10.1101/2025.11.20.689494</a></p>
+      </div>
+      <h3 id="bz-arch">模型架构</h3>
+      <div class="body">
+        <p>沿用 Boltz-2，分成 Trunk 和扩散模块。Trunk 只跑一次，产生残基和残基对表示；扩散模块多次去噪，输出全部原子坐标。设计中的氨基酸用几何表示：侧链上多出来的虚拟原子位置编码残基种类，因此序列和结构都在连续坐标空间里采样，扩散过程与 Boltz-2 相同。</p>
+        <p>输入可以是蛋白、DNA、RNA、小分子、翻译后修饰和共价键。把若干残基标成“待设计”后，模型同时给出这些残基的身份和全原子结构；若靶点只给序列，模型会一边折叠靶点、一边设计结合剂。设计说明语言还可固定残基类型、二级结构、结合位点和结构模板。</p>
+        <figure>
+          <img src="figures/boltzgen_arch.svg" alt="BoltzGen 架构：Trunk 只运行一次，扩散模块反复去噪">
+          <figcaption><b>图 7.</b> BoltzGen 的架构。残基种类由虚拟侧链原子的位置编码。</figcaption>
+        </figure>
+      </div>
+      <h3 id="bz-train">训练方式</h3>
+      <div class="body">
+        <p>扩散损失，数据是实验结构与自蒸馏结构的混合。样本随机裁剪后，再随机决定哪些链被设计、哪些亚结构或结合位点被固定。同一次训练因此同时监督折叠、结合剂设计和基序搭载，而不是为每一类任务单独建模型。</p>
+      </div>
+      <h3 id="bz-data">数据及其解读</h3>
+      <div class="body">
+        <p>有效性来自 8 组湿实验、26 个靶点，读出为表面等离子共振或生物层干涉的亲和力，部分还有细胞或抑菌功能。下图按靶点计成功率。</p>
+        <figure>
+          <img src="figures/boltzgen.png" alt="BoltzGen 在新靶点和已知复合物靶点上的湿实验成功率">
+          <figcaption><b>图 8.</b> BoltzGen 按靶点计的湿实验成功率。灰色柱的靶点在训练集中已有已知复合物。</figcaption>
+        </figure>
+        <p>前三组是分布外或新模态。9 个新靶点在整个蛋白质数据银行中没有序列一致度高于 30% 的结合态蛋白，每个靶点最多测 15 个设计：纳米抗体和普通蛋白结合剂都是 9 个里 6 个达到纳摩尔。3 条生物活性肽各测 6 个设计，2 条达到纳摩尔。灰色柱是训练集里已经有已知复合物的靶点，20 个设计中 5 个靶点有 4 个得到结合剂；作者写明，这里的成功可能只是重组见过的界面，证据弱于新靶点。</p>
+        <p>新靶点上的 6/9 支持模型能外推到低同源表面，但每个靶点的实验样本量小，而且 9 个里仍有 3 个没有纳摩尔结合剂。</p>
+      </div>
+    </div>
+
+    <div class="main" id="pc">
+      <h2>Proteina-Complexa（NVIDIA、Mila 等）</h2>
+      <div class="body">
+        <p class="cite">Didi, K., Zhang, Z., Zhou, G. et al. Scaling atomistic protein binder design with generative pretraining and test-time compute. <em>arXiv</em>:2603.27950 (2026). <a href="https://arxiv.org/abs/2603.27950">https://arxiv.org/abs/2603.27950</a></p>
+        <p class="cite">Architecture based on Geffner, T. et al. La-Proteina: atomistic protein generation via partially latent flow matching. <em>arXiv</em>:2507.09466 (2025). <a href="https://arxiv.org/abs/2507.09466">https://arxiv.org/abs/2507.09466</a></p>
+      </div>
+      <h3 id="pc-arch">模型架构</h3>
+      <div class="body">
+        <p>La-Proteina 把蛋白拆成两部分：α 碳坐标显式生成；序列和其余原子放进每个残基固定长度的潜变量。先训练变分自编码器，再用流匹配同时生成 α 碳和潜变量，解码成序列和全原子结构。Complexa 不改这个自编码器，而是用潜变量上的靶点条件，把生成从单体扩展到“给定靶点、生成结合剂”。推理时可用界面置信度或氢键能量做多次采样或束搜索，在生成过程中筛选。自身序列即可使用，不必先出骨架再交给 ProteinMPNN。</p>
+        <figure>
+          <img src="figures/proteina_complexa_arch.svg" alt="Proteina-Complexa 架构：α 碳与潜变量经流匹配生成，再由解码器还原全原子结构">
+          <figcaption><b>图 9.</b> Proteina-Complexa 的架构。靶点条件加在潜变量上，自编码器保持不变。</figcaption>
+        </figure>
+      </div>
+      <h3 id="pc-train">训练方式</h3>
+      <div class="body">
+        <p>分阶段。自编码器先在 AlphaFold 数据库单体上训练，再在蛋白质数据银行结构上微调，因为预测结构过于理想化。流匹配模型先在 Foldseek 聚类后的单体上预训练，再在结合剂–靶点对上训练。蛋白靶点用 Teddymer 加蛋白质数据银行多聚体。Teddymer 的做法是：按 TED 结构域注释把 AlphaFold 数据库中的多结构域单体切开，把空间上靠近的结构域对当成合成二聚体；界面 pLDDT &gt; 70、界面 pAE &lt; 10、界面长度 &gt; 10 的聚类代表被留下。小分子靶点用 PLINDER，并以 LoRA 微调，避免在较小数据上过拟合。</p>
+      </div>
+      <h3 id="pc-data">数据及其解读</h3>
+      <div class="body">
+        <p>下图是不另做推理时搜索时，蛋白靶点上的平均独特成功数。每个方法、每个靶点生成 200 个长度 40–250 的结合剂，成功者再聚类。成功标准来自 AlphaFold 2-Multimer：pLDDT &gt; 90，界面 pAE &lt; 7，结合剂 RMSD &lt; 1.5 Å。</p>
+        <figure>
+          <img src="figures/proteina_complexa.png" alt="Proteina-Complexa 与其他生成模型的平均独特成功数">
+          <figcaption><b>图 10.</b> 蛋白靶点上的平均独特成功数。成功由 AlphaFold 2-Multimer 的置信度定义，不是湿实验。</figcaption>
+        </figure>
+        <p>Complexa 自身序列的独特成功数 9.10，已经高于需要 ProteinMPNN 重设计的 RFdiffusion（4.68）和 APM（3.15）；再经 ProteinMPNN 为 14.4。小分子四个靶点（SAM、OQO、FAD、IAI）的独特成功数，RFdiffusion-AllAtom 为 2、3、5、8，Complexa 为 10、6、17、19。酶活性位点基准 41 项里 38 项超过 RFdiffusion2。</p>
+        <p>这些比较说明，在同一套折叠模型分数下，Complexa 生成的自洽结合剂更多、更快，而且不依赖外部序列设计。训练用的 Teddymer 来自 AlphaFold 预测结构，评分又用 AlphaFold 2-Multimer，因此上升的是模型家族内部的一致性。论文没有给出与前几个模型同级的亲和力或细胞实验。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="botBar">
+    <p>讨论课 · 五个模型的架构、训练与数据</p>
+  </div>
+
+  <script>
+    const NAV_OFFSET = 88;
+    const dropdowns = Array.prototype.slice.call(document.querySelectorAll(".nav-item.dropdown"));
+    const coarsePointer = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+
+    function setDropdownOpen(item, open) {
+      item.classList.toggle("show", open);
+      const trigger = item.querySelector(".nav-link");
+      if (trigger) trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    function closeDropdowns(except) {
+      dropdowns.forEach(item => { if (item !== except) setDropdownOpen(item, false); });
+    }
+
+    document.addEventListener("click", e => {
+      if (!e.target.closest(".nav-item.dropdown")) closeDropdowns(null);
+    });
+
+    document.querySelectorAll('.menu-nav a[href^="#"]').forEach(a => {
+      a.addEventListener("click", e => {
+        const item = a.closest(".nav-item.dropdown");
+        const isTrigger = item && a.classList.contains("nav-link");
+        if (isTrigger && coarsePointer && !item.classList.contains("show")) {
+          e.preventDefault();
+          closeDropdowns(item);
+          setDropdownOpen(item, true);
+          return;
+        }
+        const id = a.getAttribute("href").slice(1);
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+        closeDropdowns(null);
+        const y = target.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
+        window.scrollTo({ top: y, behavior: "smooth" });
+        history.pushState(null, "", "#" + id);
+      });
+    });
+
+    (function () {
+      const nav = document.getElementById("nav");
+      if (!nav) return;
+      let lastY = Math.max(window.scrollY, 0);
+      window.addEventListener("scroll", () => {
+        const y = Math.max(window.scrollY, 0);
+        if (y <= 60) nav.classList.remove("navbar-hide");
+        else if (Math.abs(y - lastY) > 8) nav.classList.toggle("navbar-hide", y > lastY);
+        lastY = y;
+      }, { passive: true });
+    })();
+  </script>
+</body>
+
+</html>
